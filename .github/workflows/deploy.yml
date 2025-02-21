@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_and_deploy:
-    runs-on: ubuntu-latest  # Use GitHub's managed runner
+    runs-on: self-hosted  # ✅ Uses your self-hosted runner
 
     env:  # ✅ Correct placement for environment variables
       DOCKER_IMAGE: "laly9999/demo1-app"
@@ -33,6 +33,5 @@ jobs:
           chmod 600 ec2.pem
           ssh -o StrictHostKeyChecking=no -i ec2.pem ${SSH_USER}@${EC2_HOST} << EOF
             docker pull $DOCKER_IMAGE:$TAG
-            docker run -d -p 80:3000 --name demo-app $DOCKER_IMAGE:$TAG
+            docker run -d -p 3002:3000 --name demo-app2 $DOCKER_IMAGE:$TAG
           EOF
-
