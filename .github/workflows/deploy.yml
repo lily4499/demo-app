@@ -1,0 +1,40 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest  # Use GitHub's managed runner
+
+    environment:
+      DOCKER_IMAGE: "laly9999/demo1-app"
+      TAG: "latest"
+      EC2_HOST: "3.90.45.68"
+      SSH_USER: "ec2-user"
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Build Docker Image
+        run: docker build -t $DOCKER_IMAGE:$TAG .
+
+      - name: Push to DockerHub
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          docker push $DOCKER_IMAGE:$TAG
+
+      - name: Decode and Use SSH Key
+        run: |
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | base64 --decode > ec2.pem
+          chmod 600 ec2.pem
+          ssh -o StrictHostKeyChecking=no -i ec2.pem ${SSH_USER}@${EC2_HOST} << EOF
+            docker pull $DOCKER_IMAGE:$TAG
+            docker stop demo-app || true
+            docker rm demo-app || true
+            docker run -d -p 80:3000 --name demo-app $DOCKER_IMAGE:$TAG
+          EOF
+
