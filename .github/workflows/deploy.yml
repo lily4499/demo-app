@@ -9,7 +9,7 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest  # Use GitHub's managed runner
 
-    environment:
+    env:  # ✅ Correct placement for environment variables
       DOCKER_IMAGE: "laly9999/demo1-app"
       TAG: "latest"
       EC2_HOST: "3.90.45.68"
